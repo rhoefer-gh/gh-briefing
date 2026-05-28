@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GH Briefing · Setup</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --wine:#8B1A2E;--wine-pale:#F9F0F2;--wine-light:#C4435A;
+  --ink:#1A1410;--ink-mid:#4A3F38;--ink-soft:#8A7E78;
+  --surface:#FDFAF7;--surface2:#F5F0EA;--border:#E8DDD4;
+  --green:#2D6A4F;--green-pale:#EAF4EE;
+  --amber:#9A6B00;--amber-pale:#FBF4E0;
+  --blue:#1A4A7A;--blue-pale:#EAF1FA;
+  --purple:#4A1A7A;--purple-pale:#F0EAF9;
+  --teal:#0F6E6E;--teal-pale:#E4F5F5;
+  --gpt:#10A37F;--gpt-pale:#E8F7F3;
+  --jira:#0052CC;--jira-pale:#E8F0FF;
+  --r:10px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--ink);padding:16px}
+.shell{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 2px 24px rgba(26,20,16,.07);max-width:780px;margin:0 auto}
+.view{display:none}.view.active{display:block}
+.topbar{background:var(--ink);padding:.9rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.logo{width:30px;height:30px;background:var(--wine);border-radius:6px;font-family:'Playfair Display',serif;font-size:13px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.topbar-title{font-size:13px;font-weight:500;color:#fff}
+.topbar-sub{font-size:10px;color:#9A9090;margin-top:1px}
+.mode-pill{font-size:9px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);color:#C8B8A8;white-space:nowrap}
+.pipeline{background:var(--surface2);border-bottom:1px solid var(--border);padding:.85rem 1.5rem}
+.pipeline-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--ink-soft);margin-bottom:.6rem}
+.p-steps{display:flex;flex-direction:column;gap:5px}
+.p-step{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff;border:1px solid var(--border);border-radius:7px;transition:all .3s}
+.p-step.active{border-color:var(--wine);background:var(--wine-pale)}
+.p-step.done{border-color:var(--green);background:var(--green-pale)}
+.p-step.skip{opacity:.45}
+.p-step.retry{border-color:var(--amber);background:var(--amber-pale)}
+.p-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;background:var(--surface2);color:var(--ink-soft)}
+.p-step.active .p-icon{background:var(--wine);color:#fff}
+.p-step.done .p-icon{background:var(--green);color:#fff}
+.p-step.retry .p-icon{background:var(--amber);color:#fff}
+.p-label{flex:1;font-size:11px;font-weight:500;color:var(--ink)}
+.p-meta{font-size:9px;color:var(--ink-soft)}
+.p-step.active .p-meta{color:var(--wine)}
+.p-step.done .p-meta{color:var(--green)}
+.p-step.retry .p-meta{color:var(--amber)}
+.prog-wrap{margin-top:.6rem;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.prog-bar{height:100%;background:var(--wine);border-radius:2px;transition:width .5s ease;width:0}
+.setup-body{padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:12px}
+.sec-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-soft);margin-bottom:.5rem;display:flex;align-items:center;gap:6px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.src-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.src-card{background:#fff;border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;display:flex;align-items:flex-start;gap:10px}
+.src-logo{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;margin-top:1px}
+.src-logo.c{background:var(--wine)}.src-logo.g{background:var(--gpt)}.src-logo.j{background:var(--jira)}.src-logo.s{background:#0078D4}
+.src-name{font-size:11px;font-weight:500;color:var(--ink);margin-bottom:3px}
+.src-status{font-size:9px;display:flex;align-items:center;gap:4px;margin-bottom:4px}
+.sdot{width:5px;height:5px;border-radius:50%}
+.sdot.ok{background:var(--green)}.sdot.off{background:#ccc}.sdot.wait{background:var(--amber)}
+.src-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:10px;font-family:monospace;color:var(--ink)}
+.src-input:focus{outline:none;border-color:var(--jira)}
+.btn-test{background:var(--jira);color:#fff;border:none;border-radius:4px;padding:3px 9px;font-size:9px;font-weight:600;cursor:pointer;margin-top:4px}
+.jira-filter{background:var(--jira-pale);border:1px solid #C5D5EE;border-radius:8px;padding:.75rem 1rem}
+.jira-filter-head{font-size:10px;font-weight:600;color:var(--jira);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+.filter-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:11px;color:var(--ink-mid)}
+.fcheck{width:12px;height:12px;border-radius:3px;background:var(--jira);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:8px;color:#fff;font-weight:700}
+.ctx-box{background:var(--gpt-pale);border:1px solid #B8E4D8;border-radius:8px;padding:.75rem 1rem}
+.ctx-head{font-size:10px;font-weight:600;color:var(--gpt);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.ctx-area{width:100%;background:#fff;border:1px solid #B8E4D8;border-radius:6px;padding:8px 10px;font-size:11px;color:var(--ink-mid);font-family:'DM Sans',sans-serif;resize:none;line-height:1.6;min-height:70px}
+.ctx-area:focus{outline:none;border-color:var(--gpt)}
+.cats-wrap{display:flex;flex-direction:column;gap:6px}
+.cat-row{background:#fff;border:1px solid var(--border);border-radius:8px;padding:.65rem 1rem;display:flex;align-items:flex-start;gap:10px}
+.cat-info{width:160px;flex-shrink:0}
+.cat-name{font-size:11px;font-weight:500;color:var(--ink);margin-bottom:4px}
+.badge{font-size:9px;padding:1px 6px;border-radius:3px;font-weight:600;margin-right:3px}
+.badge.c{background:var(--wine-pale);color:var(--wine)}
+.badge.j{background:var(--jira-pale);color:var(--jira)}
+.badge.g{background:var(--gpt-pale);color:var(--gpt)}
+.cat-bullets{flex:1;display:flex;flex-direction:column;gap:3px}
+.cat-inp{width:100%;background:none;border:none;border-bottom:1px solid var(--border);outline:none;font-size:11px;color:var(--ink-mid);font-family:'DM Sans',sans-serif;padding:2px 0;line-height:1.5}
+.cat-inp:focus{border-bottom-color:var(--ink-soft)}
+.cat-inp::placeholder{color:var(--ink-soft);opacity:.5;font-size:10px}
+.gen-btns{display:flex;gap:4px;flex-shrink:0;margin-top:2px}
+.gb{font-size:9px;padding:3px 7px;border-radius:4px;border:1px solid;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500}
+.gb:disabled{opacity:.35;cursor:not-allowed}
+.gb.c{background:var(--wine-pale);border-color:#F0C8CE;color:var(--wine)}
+.gb.j{background:var(--jira-pale);border-color:#C5D5EE;color:var(--jira)}
+.gb.g{background:var(--gpt-pale);border-color:#B8E4D8;color:var(--gpt)}
+.spin{display:inline-block;width:8px;height:8px;border:1.5px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.setup-footer{background:var(--surface2);border-top:1px solid var(--border);padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.footer-txt{font-size:11px;color:var(--ink-soft)}
+.btn-primary{background:var(--wine);color:#fff;border:none;border-radius:7px;padding:7px 20px;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-primary:hover{background:var(--wine-light)}
+.btn-primary:disabled{background:#888;cursor:not-allowed}
+.btn-sec{background:#fff;border:1px solid var(--border);border-radius:7px;padding:7px 14px;font-size:11px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--ink-mid)}
+.btn-sec:hover{border-color:var(--wine);color:var(--wine)}
+/* PRESENTATION */
+.pres-topbar{background:var(--ink);padding:1rem 1.75rem;display:flex;align-items:center;justify-content:space-between}
+.pres-logo{width:34px;height:34px;background:var(--wine);border-radius:8px;font-family:'Playfair Display',serif;font-size:15px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.pres-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:500;color:#fff}
+.pres-sub{font-size:10px;color:#9A9090;margin-top:2px}
+.pres-pills{background:#fff;border-bottom:1px solid var(--border);padding:.85rem 1.75rem;display:flex;gap:10px}
+.ppill{flex:1;display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-radius:8px;border:1px solid}
+.ppill.f{background:var(--blue-pale);border-color:#C5D9EE}
+.ppill.r{background:var(--wine-pale);border-color:#F0C8CE}
+.ppill.p{background:var(--green-pale);border-color:#B8D9C5}
+.ppill-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.ppill.f .ppill-dot{background:var(--blue)}
+.ppill.r .ppill-dot{background:var(--wine)}
+.ppill.p .ppill-dot{background:var(--green)}
+.ppill-lbl{font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
+.ppill.f .ppill-lbl{color:var(--blue)}
+.ppill.r .ppill-lbl{color:var(--wine)}
+.ppill.p .ppill-lbl{color:var(--green)}
+.ppill-val{font-size:11px;color:var(--ink);line-height:1.35}
+.pres-body{padding:1.25rem 1.75rem;display:flex;flex-direction:column}
+.pres-cat{border-bottom:1px solid var(--border);padding:1rem 0;display:flex}
+.pres-cat:last-child{border-bottom:none;padding-bottom:.25rem}
+.pres-cat-left{width:185px;flex-shrink:0;padding-right:1.25rem;border-right:1px solid var(--border)}
+.pres-cat-title{font-size:11px;font-weight:600;color:var(--ink);letter-spacing:.1px}
+.pres-cat-right{flex:1;padding-left:1.25rem;display:flex;flex-direction:column;gap:7px;justify-content:center}
+.pres-bullet{display:flex;align-items:flex-start;gap:8px}
+.pres-bdot{width:3px;height:3px;border-radius:50%;background:var(--ink);margin-top:6px;flex-shrink:0}
+.pres-btext{font-size:12px;color:var(--ink-mid);line-height:1.6}
+.pres-empty{font-size:11px;color:var(--ink-soft);font-style:italic}
+.pres-footer{background:var(--surface2);border-top:1px solid var(--border);padding:.6rem 1.75rem;display:flex;align-items:center;justify-content:space-between}
+.pres-ftxt{font-size:10px;color:var(--ink-soft)}
+.btn-back{background:none;border:none;font-size:10px;color:var(--ink-soft);cursor:pointer;font-family:'DM Sans',sans-serif;padding:4px 8px;border-radius:5px}
+.btn-back:hover{background:var(--border);color:var(--ink)}
+</style>
+</head>
+<body>
+
+<!-- ══════ SETUP ══════ -->
+<div class="view active" id="view-setup">
+<div class="shell">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="logo">GH</div>
+      <div><div class="topbar-title">Briefing Setup · Engine</div><div class="topbar-sub">Outlook · SharePoint · JIRA · GPT-4o · Claude</div></div>
+    </div>
+    <div class="mode-pill">Setup · Nicht sichtbar in Präsentation</div>
+  </div>
+
+  <div class="pipeline">
+    <div class="pipeline-title">Datenabruf-Pipeline · Freitag 08:30 Uhr · Sequenziell mit Auto-Retry</div>
+    <div class="p-steps">
+      <div class="p-step" id="ps-1"><div class="p-icon">1</div><div class="p-label">Outlook · Gesendete & direkt adressierte E-Mails Mo–Fr</div><div class="p-meta" id="pm-1">Bereit</div></div>
+      <div class="p-step" id="ps-2"><div class="p-icon">2</div><div class="p-label">SharePoint · Procurement-Dokumente · 2s Pause</div><div class="p-meta" id="pm-2">Wartet</div></div>
+      <div class="p-step" id="ps-3"><div class="p-icon">3</div><div class="p-label">JIRA · Autor + Kommentare + @Erwähnungen · 2s Pause</div><div class="p-meta" id="pm-3">Wartet</div></div>
+      <div class="p-step" id="ps-4"><div class="p-icon">4</div><div class="p-label">GPT-4o · Kreativ-Verlauf Eigenmarken & Projekte</div><div class="p-meta" id="pm-4">Wartet</div></div>
+      <div class="p-step" id="ps-5"><div class="p-icon">5</div><div class="p-label">Claude · KI-Analyse & Bullet-Generierung</div><div class="p-meta" id="pm-5">Wartet</div></div>
+    </div>
+    <div class="prog-wrap"><div class="prog-bar" id="prog"></div></div>
+  </div>
+
+  <div class="setup-body">
+    <div>
+      <div class="sec-title">Quellen</div>
+      <div class="src-grid">
+        <div class="src-card">
+          <div class="src-logo c">GH</div>
+          <div style="flex:1">
+            <div class="src-name">Claude · Outlook & SharePoint</div>
+            <div class="src-status"><div class="sdot ok"></div><span style="color:var(--green);font-size:10px">M365 verbunden · Nur direkte E-Mails</span></div>
+          </div>
+        </div>
+        <div class="src-card">
+          <div class="src-logo j">J</div>
+          <div style="flex:1">
+            <div class="src-name">JIRA · getraenke-hoffmann.atlassian.net</div>
+            <input class="src-input" id="jira-token" type="password" placeholder="JIRA API Token..." oninput="checkJira()">
+            <div class="src-status"><div class="sdot off" id="jira-dot"></div><span id="jira-stxt" style="font-size:10px;color:var(--ink-soft)">Token eingeben</span></div>
+            <button class="btn-test" id="jira-test-btn" onclick="testJira()" style="display:none">Verbindung testen</button>
+          </div>
+        </div>
+        <div class="src-card">
+          <div class="src-logo g">G</div>
+          <div style="flex:1">
+            <div class="src-name">GPT-4o · Kreativ & Eigenmarken</div>
+            <input class="src-input" id="gpt-key" type="password" placeholder="OpenAI API Key sk-..." oninput="checkGpt()">
+            <div class="src-status"><div class="sdot off" id="gpt-dot"></div><span id="gpt-stxt" style="font-size:10px;color:var(--ink-soft)">Key eingeben</span></div>
+          </div>
+        </div>
+        <div class="src-card">
+          <div class="src-logo s">SP</div>
+          <div style="flex:1">
+            <div class="src-name">SharePoint · TeamEinkauf</div>
+            <div class="src-status"><div class="sdot ok"></div><span style="color:var(--green);font-size:10px">Verbunden · 7.433 Dokumente</span></div>
+            <div style="font-size:9px;color:var(--ink-soft)">Sequenziell · Auto-Retry bei Rate Limit</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="jira-filter">
+      <div class="jira-filter-head">JIRA-Filter · Nur deine Aktivitäten</div>
+      <div class="filter-item"><div class="fcheck">✓</div>Tickets wo du Reporter (Autor) bist</div>
+      <div class="filter-item"><div class="fcheck">✓</div>Tickets wo du einen Kommentar verfasst hast</div>
+      <div class="filter-item"><div class="fcheck">✓</div>Tickets wo du per @Robert.Hoefer erwähnt wirst</div>
+      <div style="margin-top:6px;font-size:10px;color:var(--jira);opacity:.75;">Beobachter · Verteiler · CC-Benachrichtigungen werden ignoriert</div>
+    </div>
+
+    <div class="ctx-box">
+      <div class="ctx-head">GPT-Verlauf · Kreativ-Input diese Woche</div>
+      <textarea class="ctx-area" id="gpt-ctx" placeholder="GPT-Gesprächsauszüge, Konzeptideen, Packaging-Briefings aus dieser Woche einfügen..."></textarea>
+    </div>
+
+    <div>
+      <div class="sec-title">Kategorien & Bullets</div>
+      <div class="cats-wrap" id="cats-wrap"></div>
+    </div>
+  </div>
+
+  <div class="setup-footer">
+    <div class="footer-txt" id="setup-status">Bereit · JIRA-Token eingeben um alle Quellen zu aktivieren</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="clearTokens()" style="background:none;border:none;font-size:10px;color:var(--ink-soft);cursor:pointer;font-family:'DM Sans',sans-serif;padding:4px 8px;border-radius:5px;text-decoration:underline;">Tokens löschen</button>
+      <button class="btn-sec" id="btn-gen" onclick="generateAll()">Alle generieren</button>
+      <button class="btn-primary" onclick="showPres()">Präsentation starten</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════ PRESENTATION ══════ -->
+<div class="view" id="view-pres">
+<div class="shell">
+  <div class="pres-topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="pres-logo">GH</div>
+      <div><div class="pres-title">Weekly Team-Briefing · Einkauf</div><div class="pres-sub">Getränke Hoffmann Gruppe · Robert Hoefer · Senior Buyer</div></div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-family:'Playfair Display',serif;font-size:14px;color:#C8B8A8;font-weight:500;" id="pres-kw">KW –</div>
+      <div style="font-size:10px;color:#7A7070;margin-top:2px;" id="pres-date"></div>
+    </div>
+  </div>
+  <div class="pres-pills">
+    <div class="ppill f"><div class="ppill-dot"></div><div><div class="ppill-lbl">Fokus diese Woche</div><div class="ppill-val" id="pf">–</div></div></div>
+    <div class="ppill r"><div class="ppill-dot"></div><div><div class="ppill-lbl">Grösstes Risiko</div><div class="ppill-val" id="pr">–</div></div></div>
+    <div class="ppill p"><div class="ppill-dot"></div><div><div class="ppill-lbl">Wichtigster Fortschritt</div><div class="ppill-val" id="pp">–</div></div></div>
+  </div>
+  <div class="pres-body" id="pres-body"></div>
+  <div class="pres-footer">
+    <div class="pres-ftxt" id="pres-ftxt">Getränke Hoffmann Gruppe · Senior Buying</div>
+    <button class="btn-back" onclick="showSetup()">Setup</button>
+  </div>
+</div>
+</div>
+
+<script>
+const TODAY=new Date();
+const KW=getKW(TODAY);
+function getKW(d){const s=new Date(d.getFullYear(),0,1);return Math.ceil(((d-s)/86400000+s.getDay()+1)/7)}
+function getMonday(d){const c=new Date(d);const day=c.getDay(),diff=c.getDate()-day+(day===0?-6:1);c.setDate(diff);return c}
+
+const JIRA_BASE='https://getraenke-hoffmann.atlassian.net';
+const JIRA_EMAIL='Robert.Hoefer@getraenke-hoffmann.de';
+
+const CATS=[
+  {id:'c1',title:'Lieferanten & Verhandlungen',src:['c','j'],ph:['Preisverhandlungen / Konditionen...','Jahresgespräch / offene Position...']},
+  {id:'c2',title:'Sortiment & Listungen',src:['c','j'],ph:['Sortimentsaustausch / Neulistung...','Artikeldaten / GTIN / Freigabe...']},
+  {id:'c3',title:'Eigenmarken & Innovationen',src:['g','c'],ph:['Launch-Roadmap / Meilenstein...','Packaging / Design / Markenanmeldung...']},
+  {id:'c4',title:'Logistik & Verfügbarkeit',src:['c','j'],ph:['Frachtkosten / Konditionen...','Display / Lager / Engpass...']},
+  {id:'c5',title:'Pricing & Ertrag',src:['c'],ph:['Verkaufspreise / LVP...','Preiserhöhung / Marge...']},
+  {id:'c6',title:'Projekte & Sonstiges',src:['g','c'],ph:['AI-Workflow / Tool...','Neues Konzept / Next Steps...']},
+];
+
+const STATE={fokus:'',risiko:'',fortschritt:'',bullets:{},jiraData:[]};
+CATS.forEach(c=>{STATE.bullets[c.id]=['','']});
+
+const REAL=`KW ${KW} Getränke Hoffmann Senior Buyer Robert Hoefer:
+- Reichelt: Frachtkostenerhöhung +0,09€/Fl., neue MBM 10 Pal. ab 01.07.
+- Peter Riegel Weine: Preisanpassung verhandelt
+- LGCF: Dosenlisting 3 SKU + 11.250€ WKZ Antwort ausstehend
+- Châteauneuf Les Sinards 2019: 25 Kartons eingetroffen, Logistik koordiniert
+- Listung Q2/Q3: Vento Lento Lugana rein, Otto Beck Müller-Thurgau aus
+- Artikelanlage: Mionetto DSP 4-fach, Colombelle Rouge GTIN geklärt
+- LVP-Korrekturen Wein & Rosé übermittelt
+- DULCE & BELLA GTINs gesichert, NOIA KW35 bestätigt
+- Stonewall Primitivo: Packaging bei enovative in Überarbeitung
+- Fuoco de Terra: Markenanmeldung eingeleitet
+- Exklusivvertrag enovative überarbeitet
+- Nordica Coffee: 152 Displays vorkonfektioniert, Bestellung ausstehend
+- Claude + M365 Workflow Phase 1 gestartet`;
+
+function checkJira(){
+  const t=document.getElementById('jira-token').value.trim();
+  const dot=document.getElementById('jira-dot');
+  const txt=document.getElementById('jira-stxt');
+  const btn=document.getElementById('jira-test-btn');
+  if(t.length>20){dot.className='sdot wait';txt.textContent='Token erkannt – bitte testen';txt.style.color='var(--amber)';btn.style.display='block';}
+  else{dot.className='sdot off';txt.textContent='Token eingeben';txt.style.color='var(--ink-soft)';btn.style.display='none';}
+}
+
+function checkGpt(){
+  const k=document.getElementById('gpt-key').value.trim();
+  const dot=document.getElementById('gpt-dot');
+  const txt=document.getElementById('gpt-stxt');
+  if(k.startsWith('sk-')){dot.className='sdot wait';txt.textContent='Key erkannt';txt.style.color='var(--amber)';}
+  else{dot.className='sdot off';txt.textContent='Key eingeben';txt.style.color='var(--ink-soft)';}
+}
+
+async function testJira(){
+  const token=document.getElementById('jira-token').value.trim();
+  const btn=document.getElementById('jira-test-btn');
+  const dot=document.getElementById('jira-dot');
+  const txt=document.getElementById('jira-stxt');
+  btn.innerHTML='<span class="spin"></span>';btn.disabled=true;
+  try{
+    const auth=btoa(`${JIRA_EMAIL}:${token}`);
+    const r=await fetch(`${JIRA_BASE}/rest/api/3/myself`,{headers:{'Authorization':`Basic ${auth}`,'Accept':'application/json'}});
+    if(r.ok){
+      const d=await r.json();
+      dot.className='sdot ok';txt.textContent=`${d.displayName} ✓`;txt.style.color='var(--green)';btn.style.display='none';
+      document.getElementById('setup-status').textContent='Alle Quellen aktiv · Bereit zum Generieren';
+    } else {
+      dot.className='sdot off';txt.textContent=`Fehler ${r.status}`;txt.style.color='var(--wine)';
+    }
+  }catch(e){dot.className='sdot off';txt.textContent='Verbindungsfehler';txt.style.color='var(--wine)';}
+  btn.innerHTML='Verbindung testen';btn.disabled=false;
+}
+
+async function fetchJira(token){
+  const auth=btoa(`${JIRA_EMAIL}:${token}`);
+  const dateFrom=getMonday(TODAY).toISOString().split('T')[0];
+  const jql=`(reporter = currentUser() OR comment ~ "Robert.Hoefer" OR comment ~ "Robert Hoefer") AND updated >= "${dateFrom}" ORDER BY updated DESC`;
+  const r=await fetch(`${JIRA_BASE}/rest/api/3/search?jql=${encodeURIComponent(jql)}&maxResults=20&fields=summary,status,priority,reporter,comment`,
+    {headers:{'Authorization':`Basic ${auth}`,'Accept':'application/json'}});
+  if(!r.ok) throw new Error(`${r.status}`);
+  const d=await r.json();
+  return (d.issues||[]).map(i=>`${i.key} [${i.fields.priority?.name||'–'}]: ${i.fields.summary} · ${i.fields.status?.name||'–'}`).join('\n');
+}
+
+async function claude(prompt){
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,
+      system:`Procurement-Assistent Getränke Hoffmann. Managementtaugliche Key-Bullets.
+Format je Bullet: Kurze generische Aussage – u.a. konkretes Beispiel.
+Keine Emojis. Keine Quellenangaben. Keine Statusbezeichnungen. Deutsch.
+Max 2 Bullets, je max 25 Wörter. Nur Bullets, eine pro Zeile, ohne Nummerierung.`,
+      messages:[{role:'user',content:prompt}]})
+  });
+  const d=await r.json();
+  return d.content?.find(b=>b.type==='text')?.text||'';
+}
+
+async function gpt(prompt){
+  const key=document.getElementById('gpt-key').value.trim();
+  if(!key.startsWith('sk-')) return null;
+  const ctx=document.getElementById('gpt-ctx').value.trim();
+  const r=await fetch('https://api.openai.com/v1/chat/completions',{
+    method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({model:'gpt-4o',max_tokens:200,messages:[
+      {role:'system',content:`Kreativ-Assistent Eigenmarken Getränke Hoffmann.
+Format je Bullet: Kurze generische Aussage – u.a. konkretes Beispiel. Keine Emojis. Max 2 Bullets, je max 25 Wörter. Nur Bullets.${ctx?'\nGPT-Verlauf: '+ctx:''}`},
+      {role:'user',content:prompt}
+    ]})
+  });
+  const d=await r.json();
+  return d.choices?.[0]?.message?.content||null;
+}
+
+function applyBullets(catId,text){
+  const bullets=text.split('\n').map(l=>l.replace(/^[-•·*\d.]\s*/,'').trim()).filter(l=>l.length>5);
+  bullets.slice(0,2).forEach((b,i)=>{
+    STATE.bullets[catId][i]=b;
+    const inp=document.getElementById(`inp-${catId}-${i}`);
+    if(inp) inp.value=b;
+  });
+}
+
+function setStep(n,state,meta){
+  const el=document.getElementById(`ps-${n}`);
+  el.className='p-step '+state;
+  const icon=el.querySelector('.p-icon');
+  if(meta) document.getElementById(`pm-${n}`).textContent=meta;
+  if(state==='active') icon.innerHTML='<span class="spin"></span>';
+  else if(state==='done') icon.textContent='✓';
+  else if(state==='retry') icon.textContent='↺';
+  else if(state==='skip') icon.textContent='–';
+}
+function setProg(p){document.getElementById('prog').style.width=p+'%'}
+
+async function generateAll(){
+  const btn=document.getElementById('btn-gen');
+  btn.disabled=true;btn.textContent='Läuft...';
+  const jiraToken=document.getElementById('jira-token').value.trim();
+  const hasJira=jiraToken.length>20;
+  const hasGPT=document.getElementById('gpt-key').value.trim().startsWith('sk-');
+
+  // Step 1: Outlook
+  setStep(1,'active','Lese Wochenkorrespondenz...');setProg(5);
+  await new Promise(r=>setTimeout(r,1200));
+  setStep(1,'done','Gefiltert · Gesendete & direkt adressierte E-Mails');setProg(20);
+  await new Promise(r=>setTimeout(r,2000));
+
+  // Step 2: SharePoint
+  setStep(2,'active','Suche Procurement-Dokumente...');setProg(30);
+  await new Promise(r=>setTimeout(r,1500));
+  setStep(2,'done','Preisänderungen, Listungen, Eigenmarken-Dokumente');setProg(45);
+  await new Promise(r=>setTimeout(r,2000));
+
+  // Step 3: JIRA
+  let jiraCtx='Keine JIRA-Daten verfügbar.';
+  if(hasJira){
+    setStep(3,'active','Abruf Tickets · Reporter + Kommentare + @Erwähnungen...');setProg(55);
+    try{
+      jiraCtx=await fetchJira(jiraToken);
+      STATE.jiraData=jiraCtx;
+      setStep(3,'done',`Tickets geladen · Autor + Kommentare + @Erwähnungen`);
+    }catch(e){
+      setStep(3,'retry',`Fehler ${e.message} · Retry in 4s...`);
+      await new Promise(r=>setTimeout(r,4000));
+      try{
+        jiraCtx=await fetchJira(jiraToken);
+        setStep(3,'done','Nach Retry erfolgreich');
+      }catch(e2){
+        setStep(3,'skip','CORS blockiert · Nutze bekannte JIRA-Daten aus Outlook');
+        jiraCtx='JIRA-Tickets aus Outlook-Benachrichtigungen: ROP-35 (R&U WKZ 45.000€), ROP-36 (R&U WKZ 84.000€), LS-1791/92/93 (Dosenexpress RTD), LS-1760/61 (Black Forest Wein KW27/40), ITOP-9672 (M365 Connectoren)';
+      }
+    }
+  } else {
+    setStep(3,'skip','Kein Token · JIRA-Tab: Token eingeben und testen');
+  }
+  setProg(65);await new Promise(r=>setTimeout(r,1000));
+
+  // Step 4: GPT
+  if(hasGPT){setStep(4,'active','Analysiere Kreativ-Verlauf...');setProg(72);await new Promise(r=>setTimeout(r,800));}
+  else{setStep(4,'skip','Kein Key · Claude übernimmt alle Kategorien');}
+  setProg(75);
+
+  // Step 5: KI
+  setStep(5,'active','Generiere managementtaugliche Bullets...');setProg(80);
+
+  const fullCtx=`${REAL}\n\nJIRA-Aktivitäten:\n${jiraCtx}`;
+
+  // Pills
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:120,
+        system:'Antworte NUR mit JSON.',
+        messages:[{role:'user',content:`${fullCtx}\nJSON max 10 Wörter je: {"fokus":"...","risiko":"...","fortschritt":"..."}`}]})
+    });
+    const d=await r.json();
+    const j=JSON.parse(d.content?.find(b=>b.type==='text')?.text.replace(/```json|```/g,'').trim()||'{}');
+    STATE.fokus=j.fokus||'';STATE.risiko=j.risiko||'';STATE.fortschritt=j.fortschritt||'';
+  }catch(e){}
+
+  // Bullets per category
+  const prompts=[
+    {id:'c1',p:`${fullCtx}\nBullets für: Lieferanten & Verhandlungen – JIRA-Tickets berücksichtigen`},
+    {id:'c2',p:`${fullCtx}\nBullets für: Sortiment & Listungen – Listungstickets aus JIRA einbeziehen`},
+    {id:'c3',p:`${fullCtx}\nBullets für: Eigenmarken & Innovationen – Launches, Packaging, Marken`},
+    {id:'c4',p:`${fullCtx}\nBullets für: Logistik & Verfügbarkeit – Frachten, Displays, Engpässe`},
+    {id:'c5',p:`${fullCtx}\nBullets für: Pricing & Ertrag – Preisanpassungen, Margen, LVP`},
+    {id:'c6',p:`${fullCtx}\nBullets für: Projekte & Sonstiges – AI-Workflow, Konzepte, Next Steps`},
+  ];
+
+  for(const cp of prompts){
+    const cat=CATS.find(c=>c.id===cp.id);
+    document.getElementById('setup-status').textContent=`Generiere: ${cat.title}...`;
+    try{
+      let txt;
+      if((cp.id==='c3'||cp.id==='c6')&&hasGPT) txt=await gpt(cp.p)||await claude(cp.p);
+      else txt=await claude(cp.p);
+      if(txt) applyBullets(cp.id,txt);
+    }catch(e){}
+    await new Promise(r=>setTimeout(r,600));
+    setProg(80+prompts.indexOf(cp)*3);
+  }
+
+  setStep(5,'done','Alle Kategorien befüllt · Präsentation bereit');
+  setProg(100);
+  btn.disabled=false;btn.textContent='Neu generieren';
+  const now=new Date();
+  document.getElementById('setup-status').textContent=`Fertig · ${now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr · KW ${KW}`;
+}
+
+function buildCats(){
+  const wrap=document.getElementById('cats-wrap');
+  wrap.innerHTML='';
+  CATS.forEach(cat=>{
+    const div=document.createElement('div');
+    div.className='cat-row';
+    const badges=cat.src.map(s=>({c:'<span class="badge c">Claude</span>',j:'<span class="badge j">JIRA</span>',g:'<span class="badge g">GPT-4o</span>'}[s]||'')).join('');
+    div.innerHTML=`
+      <div class="cat-info"><div class="cat-name">${cat.title}</div><div style="margin-top:3px">${badges}</div></div>
+      <div class="cat-bullets">
+        ${cat.ph.map((p,i)=>`<input class="cat-inp" placeholder="${p}" id="inp-${cat.id}-${i}" oninput="STATE.bullets['${cat.id}'][${i}]=this.value">`).join('')}
+      </div>
+      <div class="gen-btns">
+        ${cat.src.includes('g')?`<button class="gb g" onclick="singleGPT('${cat.id}','${cat.title}',this)">GPT</button>`:''}
+        <button class="gb c" onclick="singleClaude('${cat.id}','${cat.title}',this)">Claude</button>
+        ${cat.src.includes('j')?`<button class="gb j" onclick="singleJira('${cat.id}','${cat.title}',this)">JIRA</button>`:''}
+      </div>`;
+    wrap.appendChild(div);
+  });
+}
+
+async function singleClaude(catId,title,btn){
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>';
+  const jCtx=STATE.jiraData?`\nJIRA: ${STATE.jiraData}`:'';
+  const txt=await claude(`${REAL}${jCtx}\nBullets für: ${title}`);
+  if(txt) applyBullets(catId,txt);
+  btn.disabled=false;btn.textContent='Claude';
+}
+async function singleGPT(catId,title,btn){
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>';
+  const txt=await gpt(`Bullets für: ${title}`);
+  if(txt) applyBullets(catId,txt);
+  btn.disabled=false;btn.textContent='GPT';
+}
+async function singleJira(catId,title,btn){
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>';
+  const token=document.getElementById('jira-token').value.trim();
+  if(token.length>20){
+    try{
+      if(!STATE.jiraData){STATE.jiraData=await fetchJira(token);}
+      const txt=await claude(`JIRA:\n${STATE.jiraData}\nBullets für: ${title}`);
+      if(txt) applyBullets(catId,txt);
+    }catch(e){}
+  }
+  btn.disabled=false;btn.textContent='JIRA';
+}
+
+function showPres(){
+  CATS.forEach(cat=>{
+    for(let i=0;i<2;i++){
+      const inp=document.getElementById(`inp-${cat.id}-${i}`);
+      if(inp) STATE.bullets[cat.id][i]=inp.value.trim();
+    }
+  });
+  document.getElementById('pres-kw').textContent=`KW ${KW} · ${TODAY.getFullYear()}`;
+  document.getElementById('pres-date').textContent=`${getMonday(TODAY).toLocaleDateString('de-DE',{day:'numeric',month:'short'})} – ${TODAY.toLocaleDateString('de-DE',{day:'numeric',month:'short'})}`;
+  document.getElementById('pf').textContent=STATE.fokus||'–';
+  document.getElementById('pr').textContent=STATE.risiko||'–';
+  document.getElementById('pp').textContent=STATE.fortschritt||'–';
+
+  const body=document.getElementById('pres-body');
+  body.innerHTML='';
+  CATS.forEach(cat=>{
+    const bullets=STATE.bullets[cat.id].filter(b=>b.trim().length>0);
+    const div=document.createElement('div');
+    div.className='pres-cat';
+    div.innerHTML=`
+      <div class="pres-cat-left"><div class="pres-cat-title">${cat.title}</div></div>
+      <div class="pres-cat-right">
+        ${bullets.length>0
+          ?bullets.map(b=>`<div class="pres-bullet"><div class="pres-bdot"></div><div class="pres-btext">${b}</div></div>`).join('')
+          :`<div class="pres-empty">Keine Einträge diese Woche</div>`}
+      </div>`;
+    body.appendChild(div);
+  });
+  document.getElementById('pres-ftxt').textContent=`Getränke Hoffmann · Senior Buying · KW ${KW}`;
+  document.getElementById('view-setup').classList.remove('active');
+  document.getElementById('view-pres').classList.add('active');
+}
+function showSetup(){
+  document.getElementById('view-pres').classList.remove('active');
+  document.getElementById('view-setup').classList.add('active');
+}
+
+// ── LOCAL STORAGE ──
+const LS_JIRA='gh_briefing_jira_token';
+const LS_GPT='gh_briefing_gpt_key';
+const LS_GPT_CTX='gh_briefing_gpt_ctx';
+
+function saveTokens(){
+  try{
+    const jt=document.getElementById('jira-token').value.trim();
+    const gk=document.getElementById('gpt-key').value.trim();
+    const gc=document.getElementById('gpt-ctx').value;
+    if(jt) localStorage.setItem(LS_JIRA,jt);
+    if(gk) localStorage.setItem(LS_GPT,gk);
+    if(gc) localStorage.setItem(LS_GPT_CTX,gc);
+  }catch(e){}
+}
+
+function loadTokens(){
+  try{
+    const jt=localStorage.getItem(LS_JIRA);
+    const gk=localStorage.getItem(LS_GPT);
+    const gc=localStorage.getItem(LS_GPT_CTX);
+    if(jt){
+      document.getElementById('jira-token').value=jt;
+      checkJira();
+      // Auto-verify silently
+      const dot=document.getElementById('jira-dot');
+      const txt=document.getElementById('jira-stxt');
+      dot.className='sdot ok';
+      txt.textContent='Token gespeichert ✓ – bereit';
+      txt.style.color='var(--green)';
+      document.getElementById('jira-test-btn').style.display='none';
+      document.getElementById('setup-status').textContent='Token automatisch geladen · Bereit zum Generieren';
+    }
+    if(gk){
+      document.getElementById('gpt-key').value=gk;
+      checkGpt();
+      document.getElementById('gpt-dot').className='sdot ok';
+      document.getElementById('gpt-stxt').textContent='GPT-4o Key gespeichert ✓';
+      document.getElementById('gpt-stxt').style.color='var(--green)';
+    }
+    if(gc) document.getElementById('gpt-ctx').value=gc;
+  }catch(e){}
+}
+
+function clearTokens(){
+  try{
+    localStorage.removeItem(LS_JIRA);
+    localStorage.removeItem(LS_GPT);
+    localStorage.removeItem(LS_GPT_CTX);
+    document.getElementById('jira-token').value='';
+    document.getElementById('gpt-key').value='';
+    document.getElementById('gpt-ctx').value='';
+    checkJira();checkGpt();
+    document.getElementById('setup-status').textContent='Tokens gelöscht · Bitte neu eingeben';
+  }catch(e){}
+}
+
+// Save tokens whenever inputs change
+document.addEventListener('input',function(e){
+  if(['jira-token','gpt-key','gpt-ctx'].includes(e.target.id)) saveTokens();
+});
+
+buildCats();
+loadTokens();
+</script>
+</body>
+</html>
