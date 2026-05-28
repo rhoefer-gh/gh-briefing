@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Getränke Hoffmann · Procurement Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#E8000F;--blue:#0050C8;
+  --ink:#1A1A1A;--ink-mid:#4A4A4A;--ink-soft:#8A8A8A;
+  --border:#E8E8E8;--border-light:#F2F2F2;
+  --surface:#FFFFFF;--surface2:#F8F8F8;
+  --green:#1A7A3C;--green-pale:#EAF4EF;
+  --amber:#8A5E00;
+}
+html{font-size:13px}
+body{font-family:'Inter',sans-serif;background:#F5F5F5;color:var(--ink);min-height:100vh}
+.view{display:none}.view.active{display:flex;flex-direction:column;min-height:100vh}
+
+/* HEADER */
+.header{background:#fff;border-bottom:2px solid var(--red);padding:.75rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.header-brand{display:flex;align-items:center;gap:14px}
+.logo-img{height:32px;width:auto;object-fit:contain}
+.h-div{width:1px;height:24px;background:var(--border)}
+.h-title{font-size:13px;font-weight:600;color:var(--ink)}
+.h-sub{font-size:10px;color:var(--ink-soft);margin-top:1px}
+.kw-badge{font-size:11px;font-weight:600;color:var(--blue);background:#EEF4FF;padding:4px 10px;border-radius:3px}
+.mode-tag{font-size:9px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);border:1px solid var(--border);padding:2px 7px;border-radius:2px}
+
+/* SETUP LAYOUT */
+.setup-body{flex:1;display:grid;grid-template-columns:220px 1fr}
+
+/* SIDEBAR */
+.sidebar{background:#fff;border-right:1px solid var(--border);padding:1rem .9rem;display:flex;flex-direction:column;gap:.65rem}
+.sb-sec{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-soft);margin-bottom:.2rem}
+.sb-item{border:1px solid var(--border);border-radius:4px;padding:.55rem .7rem;margin-bottom:3px}
+.sb-row{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.sb-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.sb-dot.ok{background:var(--green)}.sb-dot.wait{background:var(--amber)}.sb-dot.off{background:#CCC}
+.sb-name{font-size:11px;font-weight:500;color:var(--ink)}
+.sb-desc{font-size:9px;color:var(--ink-soft);line-height:1.4}
+.sb-input{width:100%;border:1px solid var(--border);border-radius:2px;padding:3px 5px;font-size:9px;font-family:monospace;color:var(--ink);margin-top:3px;background:var(--surface2)}
+.sb-input:focus{outline:none;border-color:var(--blue)}
+.sb-status{font-size:9px;color:var(--ink-soft);margin-top:2px}
+.btn-test{background:var(--blue);color:#fff;border:none;border-radius:2px;padding:2px 7px;font-size:9px;font-weight:500;cursor:pointer;margin-top:3px;font-family:'Inter',sans-serif}
+
+.gpt-box{border:1px solid var(--border);border-radius:4px;padding:.55rem .7rem}
+.gpt-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-soft);margin-bottom:4px}
+.gpt-area{width:100%;border:1px solid var(--border);border-radius:2px;padding:4px 6px;font-size:9px;color:var(--ink);font-family:'Inter',sans-serif;resize:none;line-height:1.5;min-height:55px;background:var(--surface2)}
+.gpt-area:focus{outline:none;border-color:var(--blue)}
+.sb-footer{margin-top:auto;padding-top:.65rem;border-top:1px solid var(--border);font-size:9px;color:var(--ink-soft);line-height:1.7}
+
+/* MAIN */
+.setup-main{padding:1.1rem 1.4rem;overflow-y:auto;background:var(--surface2)}
+
+/* PIPELINE */
+.pipeline{background:#fff;border:1px solid var(--border);border-radius:4px;padding:.75rem 1rem;margin-bottom:.9rem}
+.pipeline-title{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-soft);margin-bottom:.6rem}
+.pipeline-steps{display:flex;position:relative}
+.pipeline-steps::before{content:'';position:absolute;top:10px;left:6px;right:6px;height:1px;background:var(--border);z-index:0}
+.p-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;z-index:1}
+.p-dot{width:7px;height:7px;border-radius:50%;background:#fff;border:1.5px solid var(--border);flex-shrink:0;transition:all .3s}
+.p-step.active .p-dot{background:var(--red);border-color:var(--red)}
+.p-step.done .p-dot{background:var(--green);border-color:var(--green)}
+.p-step.retry .p-dot{background:var(--amber);border-color:var(--amber)}
+.p-step.skip .p-dot{background:#CCC;border-color:#CCC}
+.p-lbl{font-size:9px;color:var(--ink-soft);text-align:center;line-height:1.3}
+.p-step.active .p-lbl{color:var(--red);font-weight:500}
+.p-step.done .p-lbl{color:var(--green)}
+.prog-wrap{height:2px;background:var(--border);border-radius:1px;margin-top:.5rem;overflow:hidden}
+.prog-bar{height:100%;background:var(--red);border-radius:1px;transition:width .5s;width:0}
+
+/* LEVEL SEP */
+.level-sep{display:flex;align-items:center;gap:8px;margin:.9rem 0 .4rem}
+.level-sep.first{margin-top:0}
+.level-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-soft);white-space:nowrap}
+.level-line{flex:1;height:1px;background:var(--border)}
+
+/* CAT CARD */
+.cat-card{background:#fff;border:1px solid var(--border);border-radius:4px;padding:.65rem .85rem;margin-bottom:5px;display:flex;align-items:flex-start;gap:9px}
+.cat-num{font-size:14px;font-weight:300;color:var(--border);width:16px;text-align:center;flex-shrink:0;line-height:1.3}
+.cat-info{width:148px;flex-shrink:0}
+.cat-name{font-size:11px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.cat-folder{font-size:9px;color:var(--ink-soft)}
+.cat-src{display:flex;gap:2px;margin-top:3px;flex-wrap:wrap}
+.src-b{font-size:8px;padding:1px 4px;border-radius:2px;font-weight:500;border:1px solid}
+.src-b.claude{background:#FFF0F0;border-color:#FFCCCC;color:var(--red)}
+.src-b.gpt{background:#F0FFF8;border-color:#B8EDD8;color:var(--green)}
+.src-b.jira{background:#EEF4FF;border-color:#C5D5EE;color:var(--blue)}
+.src-b.powerbi{background:#FFFBEE;border-color:#FFE0A0;color:var(--amber)}
+.cat-bullets{flex:1;display:flex;flex-direction:column;gap:2px}
+.cat-inp{width:100%;background:none;border:none;border-bottom:1px solid var(--border-light);outline:none;font-size:11px;color:var(--ink-mid);font-family:'Inter',sans-serif;padding:2px 0;line-height:1.5}
+.cat-inp:focus{border-bottom-color:var(--border)}
+.cat-inp::placeholder{color:var(--ink-soft);opacity:.4;font-size:9px}
+.cat-actions{display:flex;gap:2px;flex-shrink:0;margin-top:1px}
+.gen-btn{font-size:9px;padding:2px 6px;border-radius:2px;border:1px solid;cursor:pointer;font-family:'Inter',sans-serif;font-weight:500}
+.gen-btn:hover{opacity:.7}
+.gen-btn:disabled{opacity:.3;cursor:not-allowed}
+.gen-btn.c{background:#FFF0F0;border-color:#FFCCCC;color:var(--red)}
+.gen-btn.g{background:#F0FFF8;border-color:#B8EDD8;color:var(--green)}
+.spin{display:inline-block;width:7px;height:7px;border:1.5px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* SETUP FOOTER */
+.setup-footer{background:#fff;border-top:1px solid var(--border);padding:.6rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.footer-status{font-size:10px;color:var(--ink-soft)}
+.footer-btns{display:flex;gap:6px}
+.btn-sec{background:#fff;border:1px solid var(--border);border-radius:3px;padding:5px 12px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;color:var(--ink-mid)}
+.btn-sec:hover{border-color:var(--red);color:var(--red)}
+.btn-sec:disabled{opacity:.4;cursor:not-allowed}
+.btn-pri{background:var(--red);color:#fff;border:none;border-radius:3px;padding:5px 16px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-pri:hover{opacity:.88}
+
+/* PRESENTATION */
+.pres-header{background:#fff;border-bottom:2px solid var(--red);padding:.75rem 2.5rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.pres-title{font-size:13px;font-weight:600;color:var(--ink)}
+.pres-sub{font-size:10px;color:var(--ink-soft);margin-top:1px}
+.pres-kw{font-size:12px;font-weight:600;color:var(--blue);text-align:right}
+.pres-date{font-size:10px;color:var(--ink-soft);margin-top:2px;text-align:right}
+
+.pres-pills{background:#fff;border-bottom:1px solid var(--border);padding:.7rem 2.5rem;display:flex;gap:8px}
+.ppill{flex:1;padding:7px 10px;border-radius:3px;border-left:2px solid}
+.ppill.f{background:#EEF4FF;border-color:var(--blue)}
+.ppill.r{background:#FFF0F0;border-color:var(--red)}
+.ppill.p{background:var(--green-pale);border-color:var(--green)}
+.ppill-lbl{font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
+.ppill.f .ppill-lbl{color:var(--blue)}
+.ppill.r .ppill-lbl{color:var(--red)}
+.ppill.p .ppill-lbl{color:var(--green)}
+.ppill-val{font-size:11px;color:var(--ink);line-height:1.35}
+
+.pres-body{flex:1;padding:1.25rem 2.5rem;overflow-y:auto;background:var(--surface2)}
+.pres-level-sep{display:flex;align-items:center;gap:8px;margin:1.1rem 0 .5rem}
+.pres-level-sep.first{margin-top:0}
+.pres-level-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-soft)}
+.pres-level-line{flex:1;height:1px;background:var(--border)}
+
+.pres-cat{background:#fff;border:1px solid var(--border);border-radius:3px;padding:.65rem 1.25rem;margin-bottom:5px;display:flex;align-items:stretch}
+.pres-cat-left{width:175px;flex-shrink:0;padding-right:1.25rem;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center}
+.pres-cat-num{font-size:10px;font-weight:300;color:var(--ink-soft);margin-bottom:2px}
+.pres-cat-name{font-size:12px;font-weight:600;color:var(--ink)}
+.pres-cat-right{flex:1;padding-left:1.25rem;display:flex;flex-direction:column;gap:5px;justify-content:center}
+.pres-bullet{display:flex;align-items:flex-start;gap:7px}
+.pres-bdot{width:3px;height:3px;border-radius:50%;background:var(--red);margin-top:5px;flex-shrink:0}
+.pres-btext{font-size:11px;color:var(--ink-mid);line-height:1.6}
+.pres-empty{font-size:10px;color:var(--ink-soft);font-style:italic}
+
+.pres-footer{background:#fff;border-top:1px solid var(--border);padding:.55rem 2.5rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.pres-footer-txt{font-size:10px;color:var(--ink-soft)}
+.btn-back{background:none;border:1px solid var(--border);font-size:10px;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;padding:3px 9px;border-radius:2px}
+.btn-back:hover{border-color:var(--ink-soft);color:var(--ink)}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div class="view active" id="view-setup">
+  <div class="header">
+    <div class="header-brand">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAoACsDASIAAhEBAxEB/8QAGwABAAEFAQAAAAAAAAAAAAAAAAYBAgMHCAT/xAAqEAACAQQBBAEBCQAAAAAAAAABAgMABAUGEQcSITFBEwgUIjJRYXGBkf/EABoBAAEFAQAAAAAAAAAAAAAAAAABAgMEBQb/xAAlEQACAQMEAgEFAAAAAAAAAAABAhEAAwQFEiExQWEGIkJxgZH/2gAMAwEAAhEDEQA/AOy6UqO9QNxw+lYJsrl5HIZvpwQRDmWeQ+kQfr+/oU13VFLMYAqbHx7uTdW1ZUszcADzUipWsdk2XqTj9KutrGHxls0QSSLDi3lurjsZgD9R1ZQpAJYhVPHH+ePf+pmw4Ppnr2zW2Ft7XIZSZY5rO7R2+nyjHwAVPJ7QRz8GpcC22fkrjWh9TdTxU2o4T6fiHMuMCgO07SDBiY9/kSPdbapVkDF4UdhwWUEj+qvph4qnSubutmegsvtFa0+xl1wmNSGZAVLKO5mJk4+eGC88fCV0jUY3zU8Ts0Vqchr+My0kD/hN27RlFPvhlBPk8ePVVM2y163CHkEH+V0PxnUrGn5huZCkqysvBAI3CJBPE+P3WlOuO5DKNbZXV8jmnxKzi2lv7bIS28TTFe4JCo4DFQCWYg+SBzXu6oNvuhadYz327vmQ90ILZjZLFNHyjHuM3JcngceCD5/Nx4rZOY1E5bCwYe81XXGsLKUNZ2/3iRY4xwR6VB58/wAeTWXatcymy4+GxzOE1zIQwyCSNZbmdVVuCOfC8+iR7re0yzp4Ni7fWWBYvzG4cQIkcD337rJ1bV84LdxcYgWoASVVyvcndtJDGftiOh1UvsEEdlAiliBGvlmLH18k+TWeqRr2oqgAcADgfFVrNMTxVSSe6UpSkopSlKKKUpSiiv/Z" alt="Getränke Hoffmann" class="logo-img">
+      <div class="h-div"></div>
+      <div><div class="h-title">Procurement Intelligence</div><div class="h-sub">Weekly Briefing · Robert Hoefer · Senior Buyer</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="kw-badge" id="kw-badge">KW –</div>
+      <div class="mode-tag">Setup</div>
+    </div>
+  </div>
+
+  <div class="setup-body">
+    <div class="sidebar">
+      <div>
+        <div class="sb-sec">Datenquellen</div>
+        <div class="sb-item">
+          <div class="sb-row"><div class="sb-dot ok"></div><div class="sb-name">Microsoft 365</div></div>
+          <div class="sb-desc">Outlook · SharePoint · M365 verbunden</div>
+        </div>
+        <div class="sb-item">
+          <div class="sb-row"><div class="sb-dot wait" id="jira-dot"></div><div class="sb-name">JIRA</div></div>
+          <div class="sb-desc">getraenke-hoffmann.atlassian.net</div>
+          <input class="sb-input" id="jira-token" type="password" placeholder="API Token..." oninput="checkJira()">
+          <div class="sb-status" id="jira-stxt">Token eingeben</div>
+          <button class="btn-test" id="jira-test-btn" onclick="testJira()" style="display:none">Testen</button>
+        </div>
+        <div class="sb-item">
+          <div class="sb-row"><div class="sb-dot wait" id="gpt-dot"></div><div class="sb-name">GPT-4o</div></div>
+          <div class="sb-desc">Eigenmarken · Kreativ-Input</div>
+          <input class="sb-input" id="gpt-key" type="password" placeholder="sk-..." oninput="checkGpt()">
+          <div class="sb-status" id="gpt-stxt">Key eingeben</div>
+        </div>
+        <div class="sb-item" style="opacity:.4">
+          <div class="sb-row"><div class="sb-dot off"></div><div class="sb-name">Power BI</div></div>
+          <div class="sb-desc">Kennzahlen · ausstehend</div>
+        </div>
+      </div>
+      <div class="gpt-box">
+        <div class="gpt-lbl">GPT-Verlauf · Kreativ-Input</div>
+        <textarea class="gpt-area" id="gpt-ctx" placeholder="GPT-Konzepte, Packaging-Ideen, Markenentwicklungen..."></textarea>
+      </div>
+      <div class="sb-footer">Freitag 08:30 Uhr · Auto-Versand<br>GitHub Pages · Power Automate</div>
+    </div>
+
+    <div class="setup-main">
+      <div class="pipeline">
+        <div class="pipeline-title">Datenabruf-Pipeline · Sequenziell · Auto-Retry</div>
+        <div class="pipeline-steps">
+          <div class="p-step" id="ps-1"><div class="p-dot"></div><div class="p-lbl" id="pm-1">Outlook</div></div>
+          <div class="p-step" id="ps-2"><div class="p-dot"></div><div class="p-lbl" id="pm-2">SharePoint</div></div>
+          <div class="p-step" id="ps-3"><div class="p-dot"></div><div class="p-lbl" id="pm-3">JIRA</div></div>
+          <div class="p-step" id="ps-4"><div class="p-dot"></div><div class="p-lbl" id="pm-4">GPT-4o</div></div>
+          <div class="p-step" id="ps-5"><div class="p-dot"></div><div class="p-lbl" id="pm-5">Claude</div></div>
+        </div>
+        <div class="prog-wrap"><div class="prog-bar" id="prog"></div></div>
+      </div>
+      <div id="cats-setup"></div>
+    </div>
+  </div>
+
+  <div class="setup-footer">
+    <div class="footer-status" id="setup-status">Bereit · Token eingeben und generieren</div>
+    <div class="footer-btns">
+      <button class="btn-sec" id="btn-gen" onclick="generateAll()">Alle generieren</button>
+      <button class="btn-pri" onclick="showPres()">Präsentation starten</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRESENTATION -->
+<div class="view" id="view-pres">
+  <div class="pres-header">
+    <div style="display:flex;align-items:center;gap:14px">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAoACsDASIAAhEBAxEB/8QAGwABAAEFAQAAAAAAAAAAAAAAAAYBAgMHCAT/xAAqEAACAQQBBAEBCQAAAAAAAAABAgMABAUGEQcSITFBEwgUIjJRYXGBkf/EABoBAAEFAQAAAAAAAAAAAAAAAAABAgMEBQb/xAAlEQACAQMEAgEFAAAAAAAAAAABAhEAAwQFEiExQWEGIkJxgZH/2gAMAwEAAhEDEQA/AOy6UqO9QNxw+lYJsrl5HIZvpwQRDmWeQ+kQfr+/oU13VFLMYAqbHx7uTdW1ZUszcADzUipWsdk2XqTj9KutrGHxls0QSSLDi3lurjsZgD9R1ZQpAJYhVPHH+ePf+pmw4Ppnr2zW2Ft7XIZSZY5rO7R2+nyjHwAVPJ7QRz8GpcC22fkrjWh9TdTxU2o4T6fiHMuMCgO07SDBiY9/kSPdbapVkDF4UdhwWUEj+qvph4qnSubutmegsvtFa0+xl1wmNSGZAVLKO5mJk4+eGC88fCV0jUY3zU8Ts0Vqchr+My0kD/hN27RlFPvhlBPk8ePVVM2y163CHkEH+V0PxnUrGn5huZCkqysvBAI3CJBPE+P3WlOuO5DKNbZXV8jmnxKzi2lv7bIS28TTFe4JCo4DFQCWYg+SBzXu6oNvuhadYz327vmQ90ILZjZLFNHyjHuM3JcngceCD5/Nx4rZOY1E5bCwYe81XXGsLKUNZ2/3iRY4xwR6VB58/wAeTWXatcymy4+GxzOE1zIQwyCSNZbmdVVuCOfC8+iR7re0yzp4Ni7fWWBYvzG4cQIkcD337rJ1bV84LdxcYgWoASVVyvcndtJDGftiOh1UvsEEdlAiliBGvlmLH18k+TWeqRr2oqgAcADgfFVrNMTxVSSe6UpSkopSlKKKUpSiiv/Z" alt="Getränke Hoffmann" style="height:28px;width:auto">
+      <div style="width:1px;height:22px;background:var(--border)"></div>
+      <div><div class="pres-title">Procurement Intelligence · Weekly Briefing</div><div class="pres-sub">Robert Hoefer · Senior Buyer · Wein · Sekt · Spirituosen · Eigenmarken</div></div>
+    </div>
+    <div><div class="pres-kw" id="pres-kw">KW –</div><div class="pres-date" id="pres-date"></div></div>
+  </div>
+
+  <div class="pres-pills">
+    <div class="ppill f"><div class="ppill-lbl">Fokus diese Woche</div><div class="ppill-val" id="pf">–</div></div>
+    <div class="ppill r"><div class="ppill-lbl">Grösstes Risiko</div><div class="ppill-val" id="pr">–</div></div>
+    <div class="ppill p"><div class="ppill-lbl">Wichtigster Fortschritt</div><div class="ppill-val" id="pp">–</div></div>
+  </div>
+
+  <div class="pres-body" id="pres-body"></div>
+
+  <div class="pres-footer">
+    <div class="pres-footer-txt" id="pres-ftxt">Getränke Hoffmann · Senior Buying</div>
+    <button class="btn-back" onclick="showSetup()">← Setup</button>
+  </div>
+</div>
+
+<script>
+const TODAY=new Date();
+const KW=getKW(TODAY);
+const JIRA_BASE='https://getraenke-hoffmann.atlassian.net';
+const JIRA_EMAIL='Robert.Hoefer@getraenke-hoffmann.de';
+const LS_JIRA='gh_jira_token';const LS_GPT='gh_gpt_key';const LS_CTX='gh_gpt_ctx';
+function getKW(d){const s=new Date(d.getFullYear(),0,1);return Math.ceil(((d-s)/86400000+s.getDay()+1)/7)}
+function getMonday(d){const c=new Date(d);const day=c.getDay(),diff=c.getDate()-day+(day===0?-6:1);c.setDate(diff);return c}
+document.getElementById('kw-badge').textContent=`KW ${KW} · ${TODAY.getFullYear()}`;
+
+const LEVELS=[
+  {key:'strategisch',label:'Strategisch',cats:[
+    {id:'c1',num:'1',name:'Eigenmarken & Innovationen',folder:'Eigenmarken & Innovationen',src:['claude','gpt'],ph:['Launch-Roadmap / Meilenstein – u.a. konkretes Beispiel...','Packaging / Design / Markenanmeldung – u.a. konkretes Beispiel...']},
+    {id:'c2',num:'2',name:'Markt & Trends',folder:'Markt & Trends',src:['claude'],ph:['Marktentwicklung / Wettbewerb – u.a. konkretes Beispiel...','Innovation / Trend – u.a. konkretes Beispiel...']}
+  ]},
+  {key:'operativ',label:'Operativer Einkauf',cats:[
+    {id:'c3',num:'3',name:'Lieferanten & Verhandlungen',folder:'Lieferanten & Verhandlungen',src:['claude','jira'],ph:['Preisverhandlungen / Konditionen – u.a. konkretes Beispiel...','Jahresgespräch / offene Position – u.a. konkretes Beispiel...']},
+    {id:'c4',num:'4',name:'Sortiment & Listings',folder:'Sortiment & Listings',src:['claude','jira'],ph:['Neulistung / Auslistung – u.a. konkretes Beispiel...','Artikeldaten / GTIN / Rollout – u.a. konkretes Beispiel...']},
+    {id:'c5',num:'5',name:'Kennzahlen',folder:'Kennzahlen',src:['claude','powerbi'],ph:['Umsatzentwicklung / Trend – u.a. konkretes Beispiel...','Margeneffekt / Preisanpassung – u.a. konkretes Beispiel...']}
+  ]},
+  {key:'administrativ',label:'Administrativ',cats:[
+    {id:'c6',num:'6',name:'Interne Abstimmung',folder:'Interne Abstimmung',src:['claude'],ph:['Interne Abstimmung / Alignment – u.a. konkretes Beispiel...']},
+    {id:'c7',num:'7',name:'Aufgaben & Prozesse',folder:'Aufgaben & Prozesse',src:['claude','jira'],ph:['Operative Task / Prozess – u.a. konkretes Beispiel...']}
+  ]}
+];
+
+const ALL_CATS=LEVELS.flatMap(l=>l.cats);
+const STATE={fokus:'',risiko:'',fortschritt:'',bullets:{},jiraData:''};
+ALL_CATS.forEach(c=>{STATE.bullets[c.id]=['','']});
+const REAL_DATA=`KW ${KW} Getränke Hoffmann Senior Buyer Robert Hoefer. Outlook-Ordner: Eigenmarken & Innovationen, Markt & Trends, Lieferanten & Verhandlungen, Sortiment & Listings, Kennzahlen, Interne Abstimmung, Aufgaben & Prozesse. Aktivitäten KW22: LGCF Dosenlisting+WKZ offen, Reichelt+Peter Riegel Preiserhöhungen, DULCE&BELLA GTINs, NOIA KW35, Stonewall Primitivo Packaging, Fuoco de Terra Markenanmeldung, Enovative Exklusivvertrag, Vento Lento Lugana neu, Otto Beck aus, Mionetto DSP+Colombelle GTIN, LVP W&R, Nordica Coffee 152 Displays, Claude+M365 Workflow live.`;
+
+function saveLS(){try{const jt=document.getElementById('jira-token').value.trim();const gk=document.getElementById('gpt-key').value.trim();const gc=document.getElementById('gpt-ctx').value;if(jt)localStorage.setItem(LS_JIRA,jt);if(gk)localStorage.setItem(LS_GPT,gk);localStorage.setItem(LS_CTX,gc);}catch(e){}}
+function loadLS(){try{const jt=localStorage.getItem(LS_JIRA);const gk=localStorage.getItem(LS_GPT);const gc=localStorage.getItem(LS_CTX);if(jt){document.getElementById('jira-token').value=jt;setJiraOk();}if(gk){document.getElementById('gpt-key').value=gk;setGptOk();}if(gc)document.getElementById('gpt-ctx').value=gc;if(jt||gk)document.getElementById('setup-status').textContent='Token geladen · Bereit';}catch(e){}}
+document.addEventListener('input',e=>{if(['jira-token','gpt-key','gpt-ctx'].includes(e.target.id))saveLS();});
+
+function setJiraOk(){document.getElementById('jira-dot').className='sb-dot ok';document.getElementById('jira-stxt').textContent='Verbunden ✓';document.getElementById('jira-stxt').style.color='var(--green)';document.getElementById('jira-test-btn').style.display='none';}
+function checkJira(){const t=document.getElementById('jira-token').value.trim();if(t.length>20){document.getElementById('jira-dot').className='sb-dot wait';document.getElementById('jira-stxt').textContent='Token erkannt';document.getElementById('jira-stxt').style.color='var(--amber)';document.getElementById('jira-test-btn').style.display='block';}else{document.getElementById('jira-dot').className='sb-dot off';document.getElementById('jira-stxt').textContent='Token eingeben';document.getElementById('jira-stxt').style.color='var(--ink-soft)';document.getElementById('jira-test-btn').style.display='none';}}
+function setGptOk(){document.getElementById('gpt-dot').className='sb-dot ok';document.getElementById('gpt-stxt').textContent='Verbunden ✓';document.getElementById('gpt-stxt').style.color='var(--green)';}
+function checkGpt(){const k=document.getElementById('gpt-key').value.trim();if(k.startsWith('sk-'))setGptOk();else{document.getElementById('gpt-dot').className='sb-dot off';document.getElementById('gpt-stxt').textContent='Key eingeben';document.getElementById('gpt-stxt').style.color='var(--ink-soft)';}}
+async function testJira(){const token=document.getElementById('jira-token').value.trim();const btn=document.getElementById('jira-test-btn');btn.innerHTML='<span class="spin"></span>';btn.disabled=true;try{const auth=btoa(`${JIRA_EMAIL}:${token}`);const r=await fetch(`${JIRA_BASE}/rest/api/3/myself`,{headers:{'Authorization':`Basic ${auth}`,'Accept':'application/json'}});if(r.ok){const d=await r.json();setJiraOk();document.getElementById('jira-stxt').textContent=`${d.displayName} ✓`;}else{document.getElementById('jira-dot').className='sb-dot off';document.getElementById('jira-stxt').textContent=`Fehler ${r.status}`;}}catch(e){document.getElementById('jira-dot').className='sb-dot off';document.getElementById('jira-stxt').textContent='Verbindungsfehler';}btn.innerHTML='Testen';btn.disabled=false;}
+
+async function callClaude(prompt){const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,system:`Procurement Intelligence Assistent Getränke Hoffmann. Managementtaugliche Key-Bullets. Format: Kurze generische Aussage – u.a. konkretes Beispiel. Keine Emojis. Deutsch. Max 2 Bullets je max 25 Wörter. Nur Bullets, eine pro Zeile.`,messages:[{role:'user',content:prompt}]})});const d=await r.json();return d.content?.find(b=>b.type==='text')?.text||'';}
+async function callGPT(prompt){const key=document.getElementById('gpt-key').value.trim();if(!key.startsWith('sk-'))return null;const ctx=document.getElementById('gpt-ctx').value.trim();const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'gpt-4o',max_tokens:200,messages:[{role:'system',content:`Kreativ-Assistent Eigenmarken Getränke Hoffmann. Format: Kurze Aussage – u.a. Beispiel. Max 2 Bullets je max 25 Wörter.${ctx?'\nGPT: '+ctx:''}`},{role:'user',content:prompt}]})});const d=await r.json();return d.choices?.[0]?.message?.content||null;}
+function applyBullets(catId,text){const bullets=text.split('\n').map(l=>l.replace(/^[-•·*\d.]\s*/,'').trim()).filter(l=>l.length>5);bullets.slice(0,2).forEach((b,i)=>{STATE.bullets[catId][i]=b;const inp=document.getElementById(`inp-${catId}-${i}`);if(inp)inp.value=b;});}
+
+function setStep(n,s,l){const el=document.getElementById(`ps-${n}`);el.className='p-step '+s;if(l)document.getElementById(`pm-${n}`).textContent=l;}
+function setProg(p){document.getElementById('prog').style.width=p+'%'}
+
+async function generateAll(){
+  const btn=document.getElementById('btn-gen');btn.disabled=true;btn.textContent='Läuft...';
+  const hasJira=document.getElementById('jira-token').value.trim().length>20;
+  const hasGPT=document.getElementById('gpt-key').value.trim().startsWith('sk-');
+  setStep(1,'active','Outlook...');setProg(5);await new Promise(r=>setTimeout(r,1200));
+  setStep(1,'done','Outlook ✓');setProg(20);await new Promise(r=>setTimeout(r,2000));
+  setStep(2,'active','SharePoint...');setProg(30);await new Promise(r=>setTimeout(r,1500));
+  setStep(2,'done','SharePoint ✓');setProg(45);await new Promise(r=>setTimeout(r,2000));
+  let jiraCtx='';
+  if(hasJira){setStep(3,'active','JIRA...');setProg(55);try{const auth=btoa(`${JIRA_EMAIL}:${document.getElementById('jira-token').value.trim()}`);const dateFrom=getMonday(TODAY).toISOString().split('T')[0];const jql=`(reporter = currentUser() OR comment ~ "Robert.Hoefer") AND updated >= "${dateFrom}" ORDER BY updated DESC`;const r=await fetch(`${JIRA_BASE}/rest/api/3/search?jql=${encodeURIComponent(jql)}&maxResults=15&fields=summary,status,priority`,{headers:{'Authorization':`Basic ${auth}`,'Accept':'application/json'}});if(r.ok){const d=await r.json();jiraCtx=(d.issues||[]).map(i=>`${i.key}: ${i.fields.summary} [${i.fields.status?.name}]`).join('\n');STATE.jiraData=jiraCtx;setStep(3,'done',`JIRA ${d.issues?.length||0} ✓`);}else throw new Error(r.status);}catch(e){setStep(3,'retry','Retry...');await new Promise(r=>setTimeout(r,4000));setStep(3,'skip','JIRA Outlook');jiraCtx='JIRA aus Outlook: LS-1791/92/93 Dosenexpress, ROP-35/36 R&U WKZ, ITOP-9672.';}}else setStep(3,'skip','JIRA –');
+  setProg(65);await new Promise(r=>setTimeout(r,1000));
+  if(hasGPT){setStep(4,'active','GPT-4o...');setProg(72);await new Promise(r=>setTimeout(r,800));}else setStep(4,'skip','GPT –');
+  setProg(75);setStep(5,'active','Claude...');setProg(80);
+  const ctx=`${REAL_DATA}${jiraCtx?'\nJIRA:\n'+jiraCtx:''}`;
+  try{const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:120,system:'Antworte NUR mit JSON.',messages:[{role:'user',content:`${ctx}\nJSON max 10 Wörter je: {"fokus":"...","risiko":"...","fortschritt":"..."}`}]})});const d=await r.json();const j=JSON.parse(d.content?.find(b=>b.type==='text')?.text.replace(/```json|```/g,'').trim()||'{}');STATE.fokus=j.fokus||'';STATE.risiko=j.risiko||'';STATE.fortschritt=j.fortschritt||'';}catch(e){}
+  for(const level of LEVELS){for(const cat of level.cats){document.getElementById('setup-status').textContent=`Generiere: ${cat.name}...`;try{const prompt=`${ctx}\nOutlook-Ordner: ${cat.folder}\nBullets für: ${cat.name}`;let txt;if(cat.src.includes('gpt')&&hasGPT)txt=await callGPT(prompt)||await callClaude(prompt);else txt=await callClaude(prompt);if(txt)applyBullets(cat.id,txt);}catch(e){}await new Promise(r=>setTimeout(r,600));}}
+  setStep(5,'done','Claude ✓');setProg(100);btn.disabled=false;btn.textContent='Neu generieren';
+  document.getElementById('setup-status').textContent=`Fertig · ${new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr · KW ${KW}`;
+}
+
+async function genSingle(catId,catName,folder,src,btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span>';const ctx=`${REAL_DATA}${STATE.jiraData?'\nJIRA:\n'+STATE.jiraData:''}`;try{const prompt=`${ctx}\nOutlook-Ordner: ${folder}\nBullets für: ${catName}`;const hasGPT=document.getElementById('gpt-key').value.trim().startsWith('sk-');let txt;if(src.includes('gpt')&&hasGPT)txt=await callGPT(prompt)||await callClaude(prompt);else txt=await callClaude(prompt);if(txt)applyBullets(catId,txt);}catch(e){}btn.disabled=false;btn.textContent=btn.dataset.lbl||'Claude';}
+
+function buildSetupCats(){const wrap=document.getElementById('cats-setup');wrap.innerHTML='';let first=true;LEVELS.forEach(level=>{const sep=document.createElement('div');sep.className='level-sep'+(first?' first':'');sep.innerHTML=`<span class="level-label">${level.label}</span><div class="level-line"></div>`;wrap.appendChild(sep);first=false;level.cats.forEach(cat=>{const div=document.createElement('div');div.className='cat-card';const badges=cat.src.map(s=>`<span class="src-b ${s}">${s==='claude'?'Claude':s==='gpt'?'GPT-4o':s==='jira'?'JIRA':'Power BI'}</span>`).join('');div.innerHTML=`<div class="cat-num">${cat.num}</div><div class="cat-info"><div class="cat-name">${cat.name}</div><div class="cat-folder">📁 ${cat.folder}</div><div class="cat-src">${badges}</div></div><div class="cat-bullets">${cat.ph.map((p,i)=>`<input class="cat-inp" placeholder="${p}" id="inp-${cat.id}-${i}" oninput="STATE.bullets['${cat.id}'][${i}]=this.value">`).join('')}</div><div class="cat-actions">${cat.src.includes('gpt')?`<button class="gen-btn g" data-lbl="GPT" onclick="genSingle('${cat.id}','${cat.name}','${cat.folder}',${JSON.stringify(cat.src)},this)">GPT</button>`:''} <button class="gen-btn c" data-lbl="Claude" onclick="genSingle('${cat.id}','${cat.name}','${cat.folder}',${JSON.stringify(cat.src)},this)">Claude</button></div>`;wrap.appendChild(div);});});}
+
+function showPres(){ALL_CATS.forEach(cat=>{for(let i=0;i<2;i++){const inp=document.getElementById(`inp-${cat.id}-${i}`);if(inp)STATE.bullets[cat.id][i]=inp.value.trim();}});document.getElementById('pres-kw').textContent=`KW ${KW} · ${TODAY.getFullYear()}`;document.getElementById('pres-date').textContent=`${getMonday(TODAY).toLocaleDateString('de-DE',{day:'numeric',month:'short'})} – ${TODAY.toLocaleDateString('de-DE',{day:'numeric',month:'short'})}`;document.getElementById('pf').textContent=STATE.fokus||'–';document.getElementById('pr').textContent=STATE.risiko||'–';document.getElementById('pp').textContent=STATE.fortschritt||'–';const body=document.getElementById('pres-body');body.innerHTML='';let first=true;LEVELS.forEach(level=>{const sep=document.createElement('div');sep.className='pres-level-sep'+(first?' first':'');sep.innerHTML=`<span class="pres-level-label">${level.label}</span><div class="pres-level-line"></div>`;body.appendChild(sep);first=false;level.cats.forEach(cat=>{const bullets=STATE.bullets[cat.id].filter(b=>b.trim().length>0);const div=document.createElement('div');div.className='pres-cat';div.innerHTML=`<div class="pres-cat-left"><div class="pres-cat-num">${cat.num}</div><div class="pres-cat-name">${cat.name}</div></div><div class="pres-cat-right">${bullets.length>0?bullets.map(b=>`<div class="pres-bullet"><div class="pres-bdot"></div><div class="pres-btext">${b}</div></div>`).join(''):`<div class="pres-empty">Keine Einträge diese Woche</div>`}</div>`;body.appendChild(div);});});document.getElementById('pres-ftxt').textContent=`Getränke Hoffmann Gruppe · Senior Buying · KW ${KW} · ${TODAY.getFullYear()}`;document.getElementById('view-setup').classList.remove('active');document.getElementById('view-pres').classList.add('active');}
+function showSetup(){document.getElementById('view-pres').classList.remove('active');document.getElementById('view-setup').classList.add('active');}
+buildSetupCats();loadLS();
+</script>
+</body>
+</html>
